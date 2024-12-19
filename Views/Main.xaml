@@ -5,13 +5,62 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleTransfer.Views"
         xmlns:viewModel="clr-namespace:SimpleTransfer.ViewModels"
+        xmlns:converters="clr-namespace:SimpleTransfer.Converters"
         xmlns:prism="http://prismlibrary.com/"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
         mc:Ignorable="d"
-        Title="Main" Height="450" Width="800">
+        Title="Main" Height="300" Width="300">
+    <Window.Resources>
+        <Style x:Key="BorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+                <EventTrigger RoutedEvent="DragOver">
+                    <EventTrigger.Actions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="Yellow" Duration="0:0:0" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger.Actions>
+                </EventTrigger>
+            </Style.Triggers>
+        </Style>
+        <converters:DragEventArgsConverter x:Key="DragEventArgsConverter"/>
+    </Window.Resources>
     <Grid>
-
+        <Border AllowDrop="True" Style="{StaticResource BorderStyle}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="DragOver" >
+                    
+                    <i:InvokeCommandAction Command="{Binding DragOverCommand}" PassEventArgsToCommand="True"
+                                           EventArgsConverter="{StaticResource DragEventArgsConverter}"
+                                           EventArgsConverterParameter="{Binding}"/>
+                </i:EventTrigger>
+                <i:EventTrigger EventName="Drop" >
+                    <i:InvokeCommandAction Command="{Binding DropCommand}" PassEventArgsToCommand="True"
+                                           EventArgsConverter="{StaticResource DragEventArgsConverter}"
+                                           EventArgsConverterParameter="{Binding}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <md:PackIcon Width="200" Height="200" Kind="FolderOpen" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <md:PackIcon.Style>
+                    <Style TargetType="md:PackIcon">
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border,Mode=FindAncestor,AncestorLevel=1},Path=Background}" Value="Transparent">
+                                <Setter Property="Foreground" Value="Gray"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </md:PackIcon.Style>
+            </md:PackIcon>
+        </Border>
     </Grid>
 </Window>
