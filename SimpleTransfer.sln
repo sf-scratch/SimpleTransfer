@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34916.146
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTransfer", "SimpleTransfer.csproj", "{A58D8C2A-C784-4BE1-AEBD-BB6145D3C352}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A58D8C2A-C784-4BE1-AEBD-BB6145D3C352}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A58D8C2A-C784-4BE1-AEBD-BB6145D3C352}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A58D8C2A-C784-4BE1-AEBD-BB6145D3C352}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A58D8C2A-C784-4BE1-AEBD-BB6145D3C352}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {229CECC3-98A9-432D-9A00-86B5A1B114AE}
+	EndGlobalSection
+EndGlobal
