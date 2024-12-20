@@ -25,6 +25,7 @@ namespace SimpleTransfer
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterForNavigation<Main, MainViewModel>();
+            containerRegistry.RegisterDialog<SettingsDialog, SettingsDialogViewModel>();
         }
     }
 }

@@ -9,9 +9,11 @@
         xmlns:prism="http://prismlibrary.com/"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:behaviors="clr-namespace:SimpleTransfer.Behaviors"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
         mc:Ignorable="d"
-        Title="Main" Height="300" Width="300">
+        Title="Main" Height="70" Width="70" WindowStyle="None" Topmost="True" ResizeMode="NoResize">
     <Window.Resources>
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="Background" Value="LightBlue"/>
@@ -35,10 +37,33 @@
         <converters:DragEventArgsConverter x:Key="DragEventArgsConverter"/>
     </Window.Resources>
     <Grid>
-        <Border AllowDrop="True" Style="{StaticResource BorderStyle}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <!--最小化托盘图标-->
+        <tb:TaskbarIcon IconSource="/Image/LogIcon.ico" TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="Show" Header="显示" Click="Show_Click"/>
+                    <MenuItem x:Name="Exit" Header="退出" Click="Exit_Click"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+        <Border Grid.Row="1" AllowDrop="True" Style="{StaticResource BorderStyle}" 
+                Width="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor},Path=Width}" 
+                Height="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor},Path=Height}" 
+                behaviors:DraggableWindowBehavior.IsDraggable="True">
+            <Border.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="设置" Command="{Binding OpenSettingCommand}"/>
+                    <MenuItem Header="隐藏" Click="btnHide_Click"/>
+                    <MenuItem Header="退出" Click="Exit_Click"/>
+                </ContextMenu>
+            </Border.ContextMenu>
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="DragOver" >
-                    
+
                     <i:InvokeCommandAction Command="{Binding DragOverCommand}" PassEventArgsToCommand="True"
                                            EventArgsConverter="{StaticResource DragEventArgsConverter}"
                                            EventArgsConverterParameter="{Binding}"/>
@@ -49,18 +74,25 @@
                                            EventArgsConverterParameter="{Binding}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
-            <md:PackIcon Width="200" Height="200" Kind="FolderOpen" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <md:PackIcon.Style>
-                    <Style TargetType="md:PackIcon">
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border,Mode=FindAncestor,AncestorLevel=1},Path=Background}" Value="Transparent">
-                                <Setter Property="Foreground" Value="Gray"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </md:PackIcon.Style>
-            </md:PackIcon>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <md:PackIcon Width="55" Height="55" Kind="FolderOpen" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <md:PackIcon.Style>
+                        <Style TargetType="md:PackIcon">
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border,Mode=FindAncestor,AncestorLevel=1},Path=Background}" Value="Transparent">
+                                    <Setter Property="Foreground" Value="Gray"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </md:PackIcon.Style>
+                </md:PackIcon>
+                <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding IdCode}"/>
+            </Grid>
         </Border>
     </Grid>
 </Window>

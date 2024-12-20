@@ -23,5 +23,25 @@ namespace SimpleTransfer.Views
         {
             InitializeComponent();
         }
+
+        private void NotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+        }
+
+        private void Show_Click(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+        }
+
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Environment.Exit(0);
+        }
+
+        private void btnHide_Click(object sender, RoutedEventArgs e)
+        {
+            this.Hide();
+        }
     }
 }
