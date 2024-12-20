@@ -32,6 +32,17 @@
                         </BeginStoryboard>
                     </EventTrigger.Actions>
                 </EventTrigger>
+                <EventTrigger RoutedEvent="DragLeave">
+                    <EventTrigger.Actions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="LightBlue" Duration="0:0:0" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger.Actions>
+                </EventTrigger>
             </Style.Triggers>
         </Style>
         <converters:DragEventArgsConverter x:Key="DragEventArgsConverter"/>
@@ -42,7 +53,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <!--最小化托盘图标-->
-        <tb:TaskbarIcon IconSource="/Image/LogIcon.ico" TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick">
+        <tb:TaskbarIcon IconSource="/Image/SimpleTransfer.ico" TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem x:Name="Show" Header="显示" Click="Show_Click"/>
@@ -50,7 +61,7 @@
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
-        <Border Grid.Row="1" AllowDrop="True" Style="{StaticResource BorderStyle}" 
+        <Border Grid.Row="1" AllowDrop="True" Style="{StaticResource BorderStyle}"
                 Width="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor},Path=Width}" 
                 Height="{Binding RelativeSource={RelativeSource AncestorType=Window, Mode=FindAncestor},Path=Height}" 
                 behaviors:DraggableWindowBehavior.IsDraggable="True">
@@ -79,7 +90,7 @@
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <md:PackIcon Width="55" Height="55" Kind="FolderOpen" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <md:PackIcon Width="55" Height="55" Kind="TrayArrowUp" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <md:PackIcon.Style>
                         <Style TargetType="md:PackIcon">
                             <Setter Property="Foreground" Value="Black"/>

@@ -45,7 +45,7 @@ namespace SimpleTransfer.ViewModels
 
         private void Init()
         {
-            _transferServer = new TransferServer("E:\\TestData\\ReceiveFileFolder");
+            _transferServer = new TransferServer("C:\\MySpace\\Dev\\Project\\TestData");
             _transferServer.Start(IdCode);
         }
 
@@ -74,7 +74,7 @@ namespace SimpleTransfer.ViewModels
             if (eventArgs == null) { return; }
             string[] files = (string[])eventArgs.Data.GetData(DataFormats.FileDrop);
             if (files == null || HasDirectory(files)) { return; }
-            _transferServer.TransferFilePathQueue.Append(files);
+            _transferServer.SendFiles(files);
         }
 
         private void DragOver(Tuple<object, DragEventArgs> tuple)
