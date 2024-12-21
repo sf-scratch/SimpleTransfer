@@ -14,12 +14,12 @@ using System.Windows.Markup;
 using System.Windows.Controls;
 using System.Diagnostics;
 using ImTools;
+using System.Reflection;
 
 namespace SimpleTransfer.Utils
 {
     public class TransferServer
     {
-        private readonly int UdpClientToSendIP_Port = 21000;
         private readonly int UdpClientToReceiveIP_Port = 31000;
         private readonly int ListenReceiveFile_Port = 11001;
 
@@ -28,7 +28,7 @@ namespace SimpleTransfer.Utils
         private UdpClient _udpClientListenReceiveIP;
         private TcpListener _tcpListener;
         private CancellationTokenSource _ctsSendLocalHostIP;
-        private string _idCode;
+        private string IdCode;
 
         public TransferServer(string saveFolder)
         {
@@ -38,7 +38,7 @@ namespace SimpleTransfer.Utils
 
         public void Start(string idCode)
         {
-            _idCode = idCode;
+            IdCode = idCode;
             StartReceiveIPAddress();
             StartListenReceiveFileConnecttion();
         }
@@ -48,17 +48,16 @@ namespace SimpleTransfer.Utils
             _ctsSendLocalHostIP.Cancel();
         }
 
-        public void SendFiles(string[] files)
+        public async Task SendFiles(string[] files)
         {
             foreach (var file in files)
             {
                 TransferFilePathQueue.Enqueue(file);
                 SendLocalHostIP();
-                Task.Delay(1000).Wait();
+                await Task.Delay(1000);
             }
         }
 
-        private long _sendTotalBytes;
         private int _sendProgressBarValue;
 
         private async Task SendFile(string filePath, TcpClient tcpClient, CancellationToken token)
@@ -76,7 +75,7 @@ namespace SimpleTransfer.Utils
                 }
                 string receiveIdCode = Encoding.UTF8.GetString(buffer, 0, idCodeBytesLength);
                 //判断接收的idCode和本地的是否相等
-                if (receiveIdCode != _idCode)
+                if (receiveIdCode != IdCode)
                 {
                     return;
                 }
@@ -100,19 +99,18 @@ namespace SimpleTransfer.Utils
                 #endregion
 
                 byte[] data = new byte[1024];
-                _sendTotalBytes = 0;
+                long sendTotalBytes = 0;
                 using (FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Open))
                 {
                     int numBytesRead;
-                    while ((numBytesRead = fileStream.Read(data, 0, data.Length)) > 0)
+                    while ((numBytesRead = await fileStream.ReadAsync(data, 0, data.Length, token)) > 0)
                     {
-                        stream.Write(data, 0, numBytesRead);
-                        _sendTotalBytes += numBytesRead;
-                        _sendProgressBarValue = (int)((_sendTotalBytes * 1.0 / totalBytes) * 100);
+                        await stream.WriteAsync(data, 0, numBytesRead, token);
+                        sendTotalBytes += numBytesRead;
+                        _sendProgressBarValue = (int)((sendTotalBytes * 1.0 / totalBytes) * 100);
                     }
                 }
 
-                _sendTotalBytes = 0;
                 _sendProgressBarValue = 0;
             }
             catch (Exception ex)
@@ -125,14 +123,12 @@ namespace SimpleTransfer.Utils
             }
         }
 
-
-        private long _acceptTotalBytes;
         private int _receiveProgressBarValue;
 
         private async Task ReceiveFileByTCP(string saveFolder, NetworkStream stream, CancellationToken token)
         {
             //发送本地idCode给发送端验证身份
-            byte[] idCodeBytes = Encoding.UTF8.GetBytes(_idCode);
+            byte[] idCodeBytes = Encoding.UTF8.GetBytes(IdCode);
             stream.Write(idCodeBytes, 0, idCodeBytes.Length);
 
             #region 校验
@@ -170,17 +166,30 @@ namespace SimpleTransfer.Utils
             }
             #endregion
 
-            _acceptTotalBytes = 0;
-            using (FileStream fileStream = new FileStream($"{saveFolder}\\{fileName}", FileMode.Create))
+            //先存到临时文件
+            string tempFileName = string.Format("{0}\\{1}{2}", saveFolder, Guid.NewGuid().ToString(), ".tmp");
+            long acceptTotalBytes = 0;
+            using (FileStream fileStream = new FileStream(tempFileName, FileMode.Create))
             {
                 int numBytesRead;
                 while ((numBytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
                 {
                     fileStream.Write(buffer, 0, numBytesRead);
-                    _acceptTotalBytes += numBytesRead;
-                    _receiveProgressBarValue = (int)((_acceptTotalBytes * 1.0 / totalBytes) * 100);
+                    acceptTotalBytes += numBytesRead;
+                    _receiveProgressBarValue = (int)((acceptTotalBytes * 1.0 / totalBytes) * 100);
                 }
             }
+
+            string newFileName = string.Format("{0}\\{1}", saveFolder, fileName); ;
+            // 确保目标文件名不存在
+            if (File.Exists(newFileName))
+            {
+                FileInfo fileInfo = new FileInfo(fileName);
+                string prefix = fileName.Replace(fileInfo.Extension, "");
+                string suffix = fileInfo.Extension;
+                newFileName = string.Format("{0}\\{1}({2}){3}", saveFolder, prefix, DateTime.Now.ToString("yyyyMMdd_HHmmss"), suffix);
+            }
+            File.Move(tempFileName, newFileName);
         }
 
         private Task StartListenReceiveFileConnecttion()
@@ -198,7 +207,7 @@ namespace SimpleTransfer.Utils
                         //检查等待发送的文件集合
                         while (TransferFilePathQueue.TryDequeue(out string filePath))
                         {
-                            Task sendFileTask = SendFile(filePath, tcpClient, token);
+                            SendFile(filePath, tcpClient, token);
                         }
                     }
                 }
@@ -227,7 +236,6 @@ namespace SimpleTransfer.Utils
             // 创建一个数据字节数组
             byte[] data = Encoding.UTF8.GetBytes(localHostIP);
             IPEndPoint broadcastEndpoint = new IPEndPoint(broadcastAddress, port);
-            _ctsSendLocalHostIP = new CancellationTokenSource();
             Task task = Task.Run(async () =>
             {
                 try
@@ -261,13 +269,13 @@ namespace SimpleTransfer.Utils
                         UdpReceiveResult receivedBytes = await _udpClientListenReceiveIP.ReceiveAsync();
                         string receivedString = Encoding.UTF8.GetString(receivedBytes.Buffer);
                         //判断是不是本地ip
-                        //if (_localHostIP != receivedString && IPAddress.TryParse(receivedString, out IPAddress receivedIpAddress))
+                        //if (GetLocalHostIP() != receivedString && IPAddress.TryParse(receivedString, out IPAddress receivedIpAddress))
                         //{
                         //    Task transferTask = CreateConnectToTransfer(receivedIpAddress, token);
                         //}
                         if (IPAddress.TryParse(receivedString, out IPAddress receivedIpAddress))
                         {
-                            Task transferTask = CreateConnectToTransfer(receivedIpAddress, token);
+                            CreateConnectToTransfer(receivedIpAddress, token);
                         }
                     }
                 }
@@ -325,7 +333,7 @@ namespace SimpleTransfer.Utils
                         // 过滤掉IPv6地址和非本地链接地址
                         if (ipAddressInfo.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
                             && !System.Net.IPAddress.IsLoopback(ipAddressInfo.Address)
-                            && networkInterface.Name.Contains("WLAN"))
+                            && (networkInterface.Name.Contains("WLAN") || networkInterface.Name.Contains("以太网")))
                         {
                             ip = ipAddressInfo.Address.ToString();
                         }

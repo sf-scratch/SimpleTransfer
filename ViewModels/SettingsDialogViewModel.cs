@@ -15,6 +15,7 @@ namespace SimpleTransfer.ViewModels
         public string Title => "设置";
         public event Action<IDialogResult> RequestClose;
         public DelegateCommand SaveCommand {  get; set; }
+        public DelegateCommand CancelCommand {  get; set; }
 
         private string _idCode;
 
@@ -31,6 +32,12 @@ namespace SimpleTransfer.ViewModels
         public SettingsDialogViewModel()
         {
             SaveCommand = new DelegateCommand(Save);
+            CancelCommand = new DelegateCommand(Cancel);
+        }
+
+        private void Cancel()
+        {
+            RequestClose?.Invoke(new DialogResult(ButtonResult.Cancel));
         }
 
         private void Save()

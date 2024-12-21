@@ -36,7 +36,8 @@ namespace SimpleTransfer.ViewModels
         public MainViewModel(IDialogService dialogService)
         {
             _dialogService = dialogService;
-            _idCode = Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
+            //_idCode = Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
+            _idCode = "6401";
             DragOverCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(DragOver);
             DropCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(Drop);
             OpenSettingCommand = new DelegateCommand(OpenSetting);
@@ -74,7 +75,7 @@ namespace SimpleTransfer.ViewModels
             if (eventArgs == null) { return; }
             string[] files = (string[])eventArgs.Data.GetData(DataFormats.FileDrop);
             if (files == null || HasDirectory(files)) { return; }
-            _transferServer.SendFiles(files);
+            Task task = _transferServer.SendFiles(files);
         }
 
         private void DragOver(Tuple<object, DragEventArgs> tuple)

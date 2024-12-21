@@ -13,7 +13,7 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
         mc:Ignorable="d"
-        Title="Main" Height="70" Width="70" WindowStyle="None" Topmost="True" ResizeMode="NoResize">
+        Title="Main" Height="70" Width="70" WindowStyle="None" ResizeMode="NoResize">
     <Window.Resources>
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="Background" Value="LightBlue"/>
@@ -56,8 +56,8 @@
         <tb:TaskbarIcon IconSource="/Image/SimpleTransfer.ico" TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem x:Name="Show" Header="显示" Click="Show_Click"/>
-                    <MenuItem x:Name="Exit" Header="退出" Click="Exit_Click"/>
+                    <MenuItem Header="显示" Click="Show_Click"/>
+                    <MenuItem Header="退出" Click="Exit_Click"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

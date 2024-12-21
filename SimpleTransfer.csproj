@@ -171,6 +171,9 @@
   <ItemGroup>
     <Resource Include="SimpleTransfer.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Rules\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\MaterialDesignThemes.5.1.0\build\MaterialDesignThemes.targets" Condition="Exists('packages\MaterialDesignThemes.5.1.0\build\MaterialDesignThemes.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

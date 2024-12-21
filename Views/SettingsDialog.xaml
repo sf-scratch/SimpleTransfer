@@ -5,15 +5,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SimpleTransfer.Views"
              xmlns:viewModel="clr-namespace:SimpleTransfer.ViewModels"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              d:DataContext="{d:DesignInstance viewModel:SettingsDialogViewModel}"
              mc:Ignorable="d" 
-             Height="100" Width="200">
+             Height="auto" Width="auto">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
-        <TextBox FontSize="20" Text="{Binding IdCode}"/>
-        <Button Grid.Row="1" Content="保存" Command="{Binding SaveCommand}"/>
+        <StackPanel Margin="16">
+            <TextBox VerticalAlignment="Center" md:TextFieldAssist.HasClearButton="True" Text="{Binding IdCode}" Margin="0,8,0,0" HorizontalAlignment="Stretch"
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                <md:HintAssist.Hint>
+                    <StackPanel Margin="-2,0,0,0" Orientation="Horizontal">
+                        <md:PackIcon Kind="AccessPoint" />
+                        <TextBlock Text="标识码" />
+                    </StackPanel>
+                </md:HintAssist.Hint>
+            </TextBox>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Margin="0,8,8,0" Command="{Binding SaveCommand}" Content="保存" Style="{StaticResource MaterialDesignFlatButton}"/>
+                <Button Margin="0,8,8,0" Command="{Binding CancelCommand}" Content="取消" Style="{StaticResource MaterialDesignFlatButton}"/>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </UserControl>
