@@ -1,6 +1,8 @@
 ﻿using Prism.Commands;
+using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
+using SimpleTransfer.PubSubEvents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,8 @@ namespace SimpleTransfer.ViewModels
         public event Action<IDialogResult> RequestClose;
         public DelegateCommand SaveCommand {  get; set; }
         public DelegateCommand CancelCommand {  get; set; }
+        //发布订阅传递数据
+        private readonly IEventAggregator _eventAggregator;
 
         private string _idCode;
 
@@ -29,10 +33,11 @@ namespace SimpleTransfer.ViewModels
             }
         }
 
-        public SettingsDialogViewModel()
+        public SettingsDialogViewModel(IEventAggregator eventAggregator)
         {
             SaveCommand = new DelegateCommand(Save);
             CancelCommand = new DelegateCommand(Cancel);
+            _eventAggregator = eventAggregator;
         }
 
         private void Cancel()
@@ -60,11 +65,10 @@ namespace SimpleTransfer.ViewModels
 
         public void OnDialogOpened(IDialogParameters parameters)
         {
-            string idCode;
-            if (parameters.TryGetValue<string>(nameof(IdCode), out idCode))
-            {
-                IdCode = idCode;
-            }
+            IdCode = parameters.GetValue<string>(nameof(IdCode));
+            double left = parameters.GetValue<double>("Left");
+            double top = parameters.GetValue<double>("Top");
+            _eventAggregator.GetEvent<UpdateWindowLeftTopEvent>().Publish(new WindowLeftTop(left, top));
         }
     }
 }

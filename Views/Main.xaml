@@ -13,7 +13,7 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
         mc:Ignorable="d"
-        Title="Main" Height="70" Width="70" WindowStyle="None" ResizeMode="NoResize">
+        Title="Main" Height="70" Width="70" WindowStyle="None" ResizeMode="NoResize" Left="{Binding Left, Mode=TwoWay}" Top="{Binding Top, Mode=TwoWay}">
     <Window.Resources>
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="Background" Value="LightBlue"/>
@@ -68,6 +68,7 @@
             <Border.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="设置" Command="{Binding OpenSettingCommand}"/>
+                    <MenuItem Header="文件传输列表" Command="{Binding OpenTransferFilesCommand}"/>
                     <MenuItem Header="隐藏" Click="btnHide_Click"/>
                     <MenuItem Header="退出" Click="Exit_Click"/>
                 </ContextMenu>

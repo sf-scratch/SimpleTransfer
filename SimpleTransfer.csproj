@@ -106,14 +106,28 @@
     </Compile>
     <Compile Include="Behaviors\DraggableWindowBehavior.cs" />
     <Compile Include="Converters\EventArgsConverter.cs" />
+    <Compile Include="PubSubEvents\UpdateWindowLeftTopEvent.cs" />
+    <Compile Include="Utils\ReceiveFileProgress.cs" />
+    <Compile Include="Utils\SendFileProgress.cs" />
+    <Compile Include="Utils\TransferProgress.cs" />
     <Compile Include="Utils\TransferServer.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SettingsDialogViewModel.cs" />
+    <Compile Include="ViewModels\TransferProgressDialogViewModel.cs" />
     <Compile Include="Views\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SettingsDialogWindow.xaml.cs">
+      <DependentUpon>SettingsDialogWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TransferProgressDialog.xaml.cs">
+      <DependentUpon>TransferProgressDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TransferProgressDialogWindow.xaml.cs">
+      <DependentUpon>TransferProgressDialogWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -149,6 +163,18 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SettingsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SettingsDialogWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TransferProgressDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TransferProgressDialogWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,5 +1,6 @@
 ﻿using Prism.DryIoc;
 using Prism.Ioc;
+using Prism.Services.Dialogs;
 using SimpleTransfer.ViewModels;
 using SimpleTransfer.Views;
 using System;
@@ -26,6 +27,9 @@ namespace SimpleTransfer
         {
             containerRegistry.RegisterForNavigation<Main, MainViewModel>();
             containerRegistry.RegisterDialog<SettingsDialog, SettingsDialogViewModel>();
+            containerRegistry.RegisterDialog<TransferProgressDialog, TransferProgressDialogViewModel>();
+            containerRegistry.Register<IDialogWindow, SettingsDialogWindow>(nameof(SettingsDialogWindow));
+            containerRegistry.Register<IDialogWindow, TransferProgressDialogWindow>(nameof(TransferProgressDialogWindow));
         }
     }
 }
