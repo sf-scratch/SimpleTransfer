@@ -32,15 +32,15 @@ namespace SimpleTransfer.Utils
         private TcpListener _tcpListener;
         private CancellationTokenSource _ctsSendLocalHostIP;
 
-        public TransferServer(string saveFolder)
+        public TransferServer(string saveFolder, string idCode)
         {
             SaveFolder = saveFolder;
+            IdCode = idCode;
             TransferFilePathQueue = new ConcurrentQueue<string>();
         }
 
-        public void Start(string idCode)
+        public void Start()
         {
-            IdCode = idCode;
             StartReceiveIPAddress();
             StartListenReceiveFileConnecttion();
         }

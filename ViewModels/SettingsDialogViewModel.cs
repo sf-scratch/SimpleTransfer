@@ -5,6 +5,7 @@ using Prism.Services.Dialogs;
 using SimpleTransfer.PubSubEvents;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,8 @@ namespace SimpleTransfer.ViewModels
         public event Action<IDialogResult> RequestClose;
         public DelegateCommand SaveCommand {  get; set; }
         public DelegateCommand CancelCommand {  get; set; }
+        public DelegateCommand SelectSaveFolderCommand { get; set; }
+        public DelegateCommand OpenSaveFolderCommand { get; set; }
         //发布订阅传递数据
         private readonly IEventAggregator _eventAggregator;
 
@@ -33,11 +36,48 @@ namespace SimpleTransfer.ViewModels
             }
         }
 
+        private string _saveFolder;
+
+        public string SaveFolder
+        {
+            get { return _saveFolder; }
+            set
+            {
+                _saveFolder = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public SettingsDialogViewModel(IEventAggregator eventAggregator)
         {
             SaveCommand = new DelegateCommand(Save);
             CancelCommand = new DelegateCommand(Cancel);
+            SelectSaveFolderCommand = new DelegateCommand(SelectSaveFolder);
+            OpenSaveFolderCommand = new DelegateCommand(OpenSaveFolder);
             _eventAggregator = eventAggregator;
+        }
+
+        private void OpenSaveFolder()
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                Arguments = SaveFolder,
+                FileName = "explorer.exe"
+            };
+            Process.Start(startInfo);
+        }
+
+        private void SelectSaveFolder()
+        {
+            using (System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                folderBrowserDialog.Description = "保存到文件夹";
+                System.Windows.Forms.DialogResult dialogResult = folderBrowserDialog.ShowDialog();
+                if (dialogResult == System.Windows.Forms.DialogResult.OK)
+                {
+                    SaveFolder = folderBrowserDialog.SelectedPath;
+                }
+            }
         }
 
         private void Cancel()
@@ -49,7 +89,8 @@ namespace SimpleTransfer.ViewModels
         {
             DialogParameters param = new DialogParameters
             {
-                { nameof(IdCode), IdCode }
+                { nameof(IdCode), IdCode },
+                { nameof(SaveFolder), SaveFolder }
             };
             RequestClose?.Invoke(new DialogResult(ButtonResult.OK, param));
         }
@@ -66,6 +107,7 @@ namespace SimpleTransfer.ViewModels
         public void OnDialogOpened(IDialogParameters parameters)
         {
             IdCode = parameters.GetValue<string>(nameof(IdCode));
+            SaveFolder = parameters.GetValue<string>(nameof(SaveFolder));
             double left = parameters.GetValue<double>("Left");
             double top = parameters.GetValue<double>("Top");
             _eventAggregator.GetEvent<UpdateWindowLeftTopEvent>().Publish(new WindowLeftTop(left, top));

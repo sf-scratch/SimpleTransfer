@@ -8,21 +8,40 @@
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              d:DataContext="{d:DesignInstance viewModel:SettingsDialogViewModel}"
              mc:Ignorable="d" 
-             Height="auto" Width="auto">
-    <Grid>
+             Height="auto" Width="500">
+    <Grid Background="White">
         <StackPanel Margin="16">
-            <TextBox VerticalAlignment="Center" md:TextFieldAssist.HasClearButton="True" Text="{Binding IdCode}" Margin="0,8,0,0" HorizontalAlignment="Stretch"
+            <DockPanel LastChildFill="False">
+                <TextBox VerticalAlignment="Center" md:TextFieldAssist.HasClearButton="True" Text="{Binding IdCode}" Margin="0,8,0,0" HorizontalAlignment="Stretch"
+                     DockPanel.Dock="Left" Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                    <md:HintAssist.Hint>
+                        <StackPanel Margin="-2,0,0,0" Orientation="Horizontal">
+                            <md:PackIcon Kind="AccessPoint" />
+                            <TextBlock Text="标识码" />
+                        </StackPanel>
+                    </md:HintAssist.Hint>
+                </TextBox>
+                <Button DockPanel.Dock="Right" Background="LightBlue" Style="{StaticResource MaterialDesignFlatLightBgButton}" Width="auto" Margin="8,0,0,0"
+                        Command="{Binding OpenSaveFolderCommand}">
+                    <md:PackIcon Kind="Folder" />
+                </Button>
+                <Button DockPanel.Dock="Right" Background="LightBlue" Style="{StaticResource MaterialDesignFlatLightBgButton}" Width="auto"
+                        Command="{Binding SelectSaveFolderCommand}">
+                    <md:PackIcon Kind="TabSearch" />
+                </Button>
+            </DockPanel>
+            <TextBox VerticalAlignment="Center" md:TextFieldAssist.HasClearButton="True" Text="{Binding SaveFolder}" Margin="0,8,0,0" HorizontalAlignment="Stretch"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                 <md:HintAssist.Hint>
                     <StackPanel Margin="-2,0,0,0" Orientation="Horizontal">
-                        <md:PackIcon Kind="AccessPoint" />
-                        <TextBlock Text="标识码" />
+                        <md:PackIcon Kind="File" />
+                        <TextBlock Text="保存到文件夹" />
                     </StackPanel>
                 </md:HintAssist.Hint>
             </TextBox>
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                <Button Margin="0,8,8,0" Command="{Binding SaveCommand}" Content="保存" Style="{StaticResource MaterialDesignFlatButton}"/>
-                <Button Margin="0,8,8,0" Command="{Binding CancelCommand}" Content="取消" Style="{StaticResource MaterialDesignFlatButton}"/>
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                <Button Margin="0,8,8,0" Command="{Binding SaveCommand}" Content="保存" Background="LightBlue" Style="{StaticResource MaterialDesignFlatLightBgButton}"/>
+                <Button Margin="0,8,8,0" Command="{Binding CancelCommand}" Content="取消" Background="LightBlue" Style="{StaticResource MaterialDesignFlatLightBgButton}"/>
             </StackPanel>
         </StackPanel>
     </Grid>

@@ -75,7 +75,6 @@
             </Border.ContextMenu>
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="DragOver" >
-
                     <i:InvokeCommandAction Command="{Binding DragOverCommand}" PassEventArgsToCommand="True"
                                            EventArgsConverter="{StaticResource DragEventArgsConverter}"
                                            EventArgsConverterParameter="{Binding}"/>

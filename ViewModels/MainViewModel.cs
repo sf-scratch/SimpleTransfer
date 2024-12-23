@@ -9,8 +9,11 @@ using SimpleTransfer.Utils;
 using SimpleTransfer.Views;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -23,9 +26,11 @@ namespace SimpleTransfer.ViewModels
         public DelegateCommand OpenSettingCommand { get; set; }
         public DelegateCommand OpenTransferFilesCommand { get; set; }
         private readonly IDialogService _dialogService;
-        private TransferServer _transferServer;
         //发布订阅传递数据
         private readonly IEventAggregator _eventAggregator;
+        private TransferServer _transferServer;
+        private int _isOpenedDialog = 0;// 0:未打开对话框  1:已打开对话框
+        private string SaveFolder {  get; set; }
 
         private string _idCode;
 
@@ -68,21 +73,55 @@ namespace SimpleTransfer.ViewModels
 
         public MainViewModel(IDialogService dialogService, IEventAggregator eventAggregator)
         {
+            InitAppConfig();
+            InitTransferServer();
             _dialogService = dialogService;
             _eventAggregator = eventAggregator;
-            //_idCode = Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
-            _idCode = "6401";
             DragOverCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(DragOver);
             DropCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(Drop);
             OpenSettingCommand = new DelegateCommand(OpenSetting);
             OpenTransferFilesCommand = new DelegateCommand(OpenTransferFiles);
-            Init();
         }
 
-        private void Init()
+        private void InitAppConfig()
         {
-            _transferServer = new TransferServer("C:\\MySpace\\Dev\\Project\\TestData");
-            _transferServer.Start(IdCode);
+            if (ConfigurationManager.AppSettings[nameof(IdCode)] == null)
+            {
+                AppConfigUtils.AddItem(nameof(IdCode), Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper());
+            }
+            if (ConfigurationManager.AppSettings[nameof(SaveFolder)] == null)
+            {
+                string saveFolder = string.Format("{0}\\{1}", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SimpleTransfer");
+                if (!Directory.Exists(saveFolder))
+                {
+                    Directory.CreateDirectory(saveFolder);
+                }
+                AppConfigUtils.AddItem(nameof(SaveFolder), saveFolder);
+            }
+            if (ConfigurationManager.AppSettings[nameof(Left)] == null)
+            {
+                AppConfigUtils.AddItem(nameof(Left), "200");
+            }
+            if (ConfigurationManager.AppSettings[nameof(Top)] == null)
+            {
+                AppConfigUtils.AddItem(nameof(Top), "200");
+            }
+            IdCode = ConfigurationManager.AppSettings[nameof(IdCode)];
+            SaveFolder = ConfigurationManager.AppSettings[nameof(SaveFolder)];
+            if (double.TryParse(ConfigurationManager.AppSettings[nameof(Left)], out double left))
+            {
+                _left = left;
+            }
+            if (double.TryParse(ConfigurationManager.AppSettings[nameof(Top)], out double top))
+            {
+                _top = top;
+            }
+        }
+
+        private void InitTransferServer()
+        {
+            _transferServer = new TransferServer(SaveFolder, IdCode);
+            _transferServer.Start();
             _transferServer.AddReceiveFileProgressEvent += TransferServer_AddReceiveFileProgressEvent;
             _transferServer.AddSendFileProgressEvent += TransferServer_AddSendFileProgressEvent;
 
@@ -90,7 +129,7 @@ namespace SimpleTransfer.ViewModels
 
         private void TransferServer_AddSendFileProgressEvent(SendFileProgress obj)
         {
-            
+
         }
 
         private void TransferServer_AddReceiveFileProgressEvent(ReceiveFileProgress obj)
@@ -100,45 +139,79 @@ namespace SimpleTransfer.ViewModels
 
         private void OpenTransferFiles()
         {
-            DialogParameters param = new DialogParameters
+            if (Interlocked.CompareExchange(ref _isOpenedDialog, 1, 0) == 0)
             {
-                { nameof(Left), Left },
-                { nameof(Top), Top }
-            };
-            _dialogService.Show(nameof(TransferProgressDialog), param, (res) =>
-            {
-                if (res.Result == ButtonResult.OK)
+                DialogParameters param = new DialogParameters()
                 {
-                    string idCode;
-                    if (res.Parameters.TryGetValue<string>(nameof(IdCode), out idCode))
+                    { nameof(Left), Left },
+                    { nameof(Top), Top }
+                };
+                _dialogService.Show(nameof(TransferProgressDialog), param, (res) =>
+                {
+                    if (res.Result == ButtonResult.OK)
                     {
-                        IdCode = idCode;
-                        _transferServer.IdCode = idCode;
+                        if (res.Parameters.TryGetValue(nameof(IdCode), out string idCode))
+                        {
+                            IdCode = idCode;
+                            _transferServer.IdCode = idCode;
+                        }
                     }
-                }
-            }, nameof(TransferProgressDialogWindow));
+                    Interlocked.Exchange(ref _isOpenedDialog, 0);//切换状态
+                }, nameof(TransferProgressDialogWindow));
+            }
         }
 
         private void OpenSetting()
         {
-            DialogParameters param = new DialogParameters
+            if (Interlocked.CompareExchange(ref _isOpenedDialog, 1, 0) == 0)
             {
-                { nameof(Left), Left },
-                { nameof(Top), Top },
-                { nameof(IdCode), IdCode }
-            };
-            _dialogService.Show(nameof(SettingsDialog), param, (res) =>
-            {
-                if (res.Result == ButtonResult.OK)
+                DialogParameters param = new DialogParameters()
                 {
-                    string idCode;
-                    if (res.Parameters.TryGetValue<string>(nameof(IdCode), out idCode))
+                    { nameof(Left), Left },
+                    { nameof(Top), Top },
+                    { nameof(IdCode), IdCode },
+                    { nameof(SaveFolder), SaveFolder }
+                };
+                _dialogService.Show(nameof(SettingsDialog), param, (res) =>
+                {
+                    if (res.Result == ButtonResult.OK)
                     {
-                        IdCode = idCode;
-                        _transferServer.IdCode = idCode;
+                        if (res.Parameters.TryGetValue(nameof(IdCode), out string idCode))
+                        {
+                            IdCode = idCode;
+                            _transferServer.IdCode = idCode;
+                            AppConfigUtils.AddItem(nameof(IdCode), idCode);
+                        }
+
+                        if (res.Parameters.TryGetValue(nameof(SaveFolder), out string saveFolder))
+                        {
+                            //检查文件夹是否存在
+                            if (!Directory.Exists(saveFolder))
+                            {
+                                try
+                                {
+                                    Directory.CreateDirectory(saveFolder);//文件夹路径格式不对会抛IO异常
+                                    SaveFolder = saveFolder;
+                                    _transferServer.SaveFolder = saveFolder;
+                                    AppConfigUtils.AddItem(nameof(SaveFolder), saveFolder);
+                                }
+                                catch(Exception ex)
+                                {
+                                    MessageBox.Show(ex.Message);
+                                }
+                            }
+                            else
+                            {
+                                SaveFolder = saveFolder;
+                                _transferServer.SaveFolder = saveFolder;
+                                AppConfigUtils.AddItem(nameof(SaveFolder), saveFolder);
+                            }
+                        }
                     }
-                }
-            }, nameof(SettingsDialogWindow));
+                    Interlocked.Exchange(ref _isOpenedDialog, 0);//切换状态
+                }, nameof(SettingsDialogWindow));
+            }
+                
         }
 
         private void Drop(Tuple<object, DragEventArgs> tuple)

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleTransfer.Views"
         mc:Ignorable="d"
-        Title="SettingsDialogWindow" Height="113" Width="168" WindowStyle="None" ResizeMode="NoResize">
+        Title="SettingsDialogWindow" Height="154" Width="500" WindowStyle="None" ResizeMode="NoResize">
     <Grid>
         
     </Grid>

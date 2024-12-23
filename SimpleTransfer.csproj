@@ -82,6 +82,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -107,6 +108,7 @@
     <Compile Include="Behaviors\DraggableWindowBehavior.cs" />
     <Compile Include="Converters\EventArgsConverter.cs" />
     <Compile Include="PubSubEvents\UpdateWindowLeftTopEvent.cs" />
+    <Compile Include="Utils\AppConfigUtils.cs" />
     <Compile Include="Utils\ReceiveFileProgress.cs" />
     <Compile Include="Utils\SendFileProgress.cs" />
     <Compile Include="Utils\TransferProgress.cs" />
@@ -198,6 +200,7 @@
     <Resource Include="SimpleTransfer.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Extensions\" />
     <Folder Include="Rules\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
