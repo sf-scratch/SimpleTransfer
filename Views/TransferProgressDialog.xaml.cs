@@ -18,7 +18,7 @@ namespace SimpleTransfer.Views
     /// <summary>
     /// TransferProgressDialog.xaml 的交互逻辑
     /// </summary>
-    public partial class TransferProgressDialog : Page
+    public partial class TransferProgressDialog : UserControl
     {
         public TransferProgressDialog()
         {

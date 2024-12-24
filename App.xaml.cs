@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -18,6 +19,9 @@ namespace SimpleTransfer
     /// </summary>
     public partial class App : PrismApplication
     {
+        //用于控制应用程序单开
+        public static readonly Mutex MUTEX = new Mutex(true, "SimpleTransfer");
+
         protected override Window CreateShell()
         {
             return Container.Resolve<Main>();

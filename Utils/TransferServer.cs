@@ -21,6 +21,7 @@ namespace SimpleTransfer.Utils
 {
     public class TransferServer
     {
+        public static readonly int BufferSize = 131072;//建议的缓冲区大小是不小于4KB且不大于2MB的任何2的幂
         private readonly int UdpClientToReceiveIP_Port = 31000;
         private readonly int ListenReceiveFile_Port = 11001;
         public event Action<SendFileProgress> AddSendFileProgressEvent;
@@ -68,7 +69,7 @@ namespace SimpleTransfer.Utils
                 NetworkStream stream = tcpClient.GetStream();
                 //发送文件前，必须先接收idCode
                 int idCodeBytesLength = 4;
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[BufferSize];
                 if (await stream.ReadAsync(buffer, 0, idCodeBytesLength, token) != idCodeBytesLength)
                 {
                     return;
@@ -98,24 +99,21 @@ namespace SimpleTransfer.Utils
                 await stream.WriteAsync(fileNameData, 0, fileNameData.Length, token);//文件名
                 #endregion
 
-                SendFileProgress progress = new SendFileProgress(((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString(), fileName);
+                SendFileProgress progress = new SendFileProgress(((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString(), fileName)
+                {
+                    TotalBytesLength = fileLength
+                };
                 AddSendFileProgressEvent?.Invoke(progress);
 
-                byte[] data = new byte[1024];
                 long sendTotalBytes = 0;
-                int sendProgressBarValue = 0;
                 using (FileStream fileStream = new FileStream(fileInfo.FullName, FileMode.Open))
                 {
                     int numBytesRead;
-                    while ((numBytesRead = await fileStream.ReadAsync(data, 0, data.Length, token)) > 0)
+                    while ((numBytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
                     {
-                        await stream.WriteAsync(data, 0, numBytesRead, token);
+                        await stream.WriteAsync(buffer, 0, numBytesRead, token);
                         sendTotalBytes += numBytesRead;
-                        sendProgressBarValue = (int)((sendTotalBytes * 1.0 / totalBytes) * 100);
-                        if (progress.Value != sendProgressBarValue)
-                        {
-                            progress.Value = sendProgressBarValue;
-                        }
+                        progress.TransferredBytesLength = sendTotalBytes;
                     }
                 }
             }
@@ -137,7 +135,7 @@ namespace SimpleTransfer.Utils
             stream.Write(idCodeBytes, 0, idCodeBytes.Length);
 
             #region 校验
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BufferSize];
             int longSize = sizeof(long);
             long totalBytes;
             long fileNameBytes;
@@ -171,13 +169,16 @@ namespace SimpleTransfer.Utils
             }
             #endregion
 
-            ReceiveFileProgress progress = new ReceiveFileProgress(((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString(), fileName);
+            long fileLength = totalBytes - (sizeof(long) + sizeof(long) + fileNameBytes);
+            ReceiveFileProgress progress = new ReceiveFileProgress(((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString(), fileName)
+            {
+                TotalBytesLength = fileLength
+            };
             AddReceiveFileProgressEvent?.Invoke(progress);
 
             //先存到临时文件
             string tempFileName = string.Format("{0}\\{1}{2}", saveFolder, Guid.NewGuid().ToString(), ".tmp");
             long acceptTotalBytes = 0;
-            int receiveProgressBarValue;
             using (FileStream fileStream = new FileStream(tempFileName, FileMode.Create))
             {
                 int numBytesRead;
@@ -185,11 +186,7 @@ namespace SimpleTransfer.Utils
                 {
                     fileStream.Write(buffer, 0, numBytesRead);
                     acceptTotalBytes += numBytesRead;
-                    receiveProgressBarValue = (int)((acceptTotalBytes * 1.0 / totalBytes) * 100);
-                    if (progress.Value != receiveProgressBarValue)
-                    {
-                        progress.Value = receiveProgressBarValue;
-                    }
+                    progress.TransferredBytesLength = acceptTotalBytes;
                 }
             }
 
@@ -284,7 +281,7 @@ namespace SimpleTransfer.Utils
                         //判断是不是本地ip
                         //if (GetLocalHostIP() != receivedString && IPAddress.TryParse(receivedString, out IPAddress receivedIpAddress))
                         //{
-                        //    Task transferTask = CreateConnectToTransfer(receivedIpAddress, token);
+                        //    CreateConnectToTransfer(receivedIpAddress, token);
                         //}
                         if (IPAddress.TryParse(receivedString, out IPAddress receivedIpAddress))
                         {

@@ -1,6 +1,7 @@
 ﻿using DryIoc;
 using ImTools;
 using Prism.Commands;
+using Prism.DryIoc;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
@@ -9,6 +10,7 @@ using SimpleTransfer.Utils;
 using SimpleTransfer.Views;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -79,8 +81,8 @@ namespace SimpleTransfer.ViewModels
             _eventAggregator = eventAggregator;
             DragOverCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(DragOver);
             DropCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(Drop);
-            OpenSettingCommand = new DelegateCommand(OpenSetting);
-            OpenTransferFilesCommand = new DelegateCommand(OpenTransferFiles);
+            OpenSettingCommand = new DelegateCommand(() => { OpenSetting(); });
+            OpenTransferFilesCommand = new DelegateCommand(() => { OpenTransferFiles(); });
         }
 
         private void InitAppConfig()
@@ -127,14 +129,28 @@ namespace SimpleTransfer.ViewModels
 
         }
 
-        private void TransferServer_AddSendFileProgressEvent(SendFileProgress obj)
+        private readonly List<SendFileProgress> _SendFileProgressCollection = new List<SendFileProgress>();
+        private void TransferServer_AddSendFileProgressEvent(SendFileProgress sendFileProgress)
         {
-
+            _eventAggregator.GetEvent<CloseDialogEvent>().Publish();//通知关闭对话框
+            PrismApplication.Current.Dispatcher.Invoke(() =>
+            {
+                OpenTransferFiles();//打开文件传输对话框（需要UI线程）
+            });
+            _eventAggregator.GetEvent<AddSendFileProgressEvent>().Publish(sendFileProgress);
+            _SendFileProgressCollection.Add(sendFileProgress);
         }
 
-        private void TransferServer_AddReceiveFileProgressEvent(ReceiveFileProgress obj)
+        private readonly List<ReceiveFileProgress> _ReceiveFileProgressCollection = new List<ReceiveFileProgress>();
+        private void TransferServer_AddReceiveFileProgressEvent(ReceiveFileProgress receiveFileProgress)
         {
-
+            _eventAggregator.GetEvent<CloseDialogEvent>().Publish();//通知关闭对话框
+            PrismApplication.Current.Dispatcher.Invoke(() =>
+            {
+                OpenTransferFiles();//打开文件传输对话框（需要UI线程）
+            });
+            _eventAggregator.GetEvent<AddReceiveFileProgressEvent>().Publish(receiveFileProgress);
+            _ReceiveFileProgressCollection.Add(receiveFileProgress);
         }
 
         private void OpenTransferFiles()
@@ -158,6 +174,16 @@ namespace SimpleTransfer.ViewModels
                     }
                     Interlocked.Exchange(ref _isOpenedDialog, 0);//切换状态
                 }, nameof(TransferProgressDialogWindow));
+
+                //将文件传输的记录再发给对话框
+                foreach (var item in _SendFileProgressCollection)
+                {
+                    _eventAggregator.GetEvent<AddSendFileProgressEvent>().Publish(item);
+                }
+                foreach (var item in _ReceiveFileProgressCollection)
+                {
+                    _eventAggregator.GetEvent<AddReceiveFileProgressEvent>().Publish(item);
+                }
             }
         }
 
@@ -174,6 +200,7 @@ namespace SimpleTransfer.ViewModels
                 };
                 _dialogService.Show(nameof(SettingsDialog), param, (res) =>
                 {
+                    //点击保存按钮
                     if (res.Result == ButtonResult.OK)
                     {
                         if (res.Parameters.TryGetValue(nameof(IdCode), out string idCode))
@@ -211,7 +238,6 @@ namespace SimpleTransfer.ViewModels
                     Interlocked.Exchange(ref _isOpenedDialog, 0);//切换状态
                 }, nameof(SettingsDialogWindow));
             }
-                
         }
 
         private void Drop(Tuple<object, DragEventArgs> tuple)

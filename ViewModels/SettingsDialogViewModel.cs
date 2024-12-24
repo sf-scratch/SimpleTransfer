@@ -1,4 +1,5 @@
 ﻿using Prism.Commands;
+using Prism.DryIoc;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
@@ -55,6 +56,15 @@ namespace SimpleTransfer.ViewModels
             SelectSaveFolderCommand = new DelegateCommand(SelectSaveFolder);
             OpenSaveFolderCommand = new DelegateCommand(OpenSaveFolder);
             _eventAggregator = eventAggregator;
+            _eventAggregator.GetEvent<CloseDialogEvent>().Subscribe(CloseDialog);
+        }
+
+        private void CloseDialog()
+        {
+            PrismApplication.Current.Dispatcher.Invoke(() =>
+            {
+                RequestClose?.Invoke(new DialogResult(ButtonResult.Cancel));
+            });
         }
 
         private void OpenSaveFolder()
