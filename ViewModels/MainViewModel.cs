@@ -1,5 +1,6 @@
 ﻿using DryIoc;
 using ImTools;
+using Microsoft.Win32;
 using Prism.Commands;
 using Prism.DryIoc;
 using Prism.Events;
@@ -18,15 +19,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using static ImTools.ImMap;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace SimpleTransfer.ViewModels
 {
     public class MainViewModel : BindableBase
     {
+        private static readonly string RegisterKeyName = @"Software\SimpleTransfer";
         public DelegateCommand<Tuple<object, DragEventArgs>> DragOverCommand { get; set; }
         public DelegateCommand<Tuple<object, DragEventArgs>> DropCommand { get; set; }
         public DelegateCommand OpenSettingCommand { get; set; }
         public DelegateCommand OpenTransferFilesCommand { get; set; }
+        public DelegateCommand SetStartupLocationCommand { get; set; }
         private readonly IDialogService _dialogService;
         //发布订阅传递数据
         private readonly IEventAggregator _eventAggregator;
@@ -81,42 +86,60 @@ namespace SimpleTransfer.ViewModels
             _eventAggregator = eventAggregator;
             DragOverCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(DragOver);
             DropCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(Drop);
-            OpenSettingCommand = new DelegateCommand(() => { OpenSetting(); });
-            OpenTransferFilesCommand = new DelegateCommand(() => { OpenTransferFiles(); });
+            OpenSettingCommand = new DelegateCommand(OpenSetting);
+            OpenTransferFilesCommand = new DelegateCommand(OpenTransferFiles);
+            SetStartupLocationCommand = new DelegateCommand(SetStartupLocation);
         }
 
         private void InitAppConfig()
         {
-            if (ConfigurationManager.AppSettings[nameof(IdCode)] == null)
+            try
             {
-                AppConfigUtils.AddItem(nameof(IdCode), Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper());
-            }
-            if (ConfigurationManager.AppSettings[nameof(SaveFolder)] == null)
-            {
-                string saveFolder = string.Format("{0}\\{1}", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SimpleTransfer");
-                if (!Directory.Exists(saveFolder))
+                RegistryKey subKey = Registry.CurrentUser.CreateSubKey(RegisterKeyName);
+                if (subKey == null)
                 {
-                    Directory.CreateDirectory(saveFolder);
+                    MessageBox.Show("注册表打开异常");
+                    Environment.Exit(0);
+                    return;
                 }
-                AppConfigUtils.AddItem(nameof(SaveFolder), saveFolder);
+                if (subKey.GetValue(nameof(IdCode)) == null)
+                {
+                    subKey.SetValue(nameof(IdCode), Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper());
+                }
+                if (subKey.GetValue(nameof(SaveFolder)) == null)
+                {
+                    string saveFolder = string.Format("{0}\\{1}", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SimpleTransfer");
+                    if (!Directory.Exists(saveFolder))
+                    {
+                        Directory.CreateDirectory(saveFolder);
+                    }
+                    subKey.SetValue(nameof(SaveFolder), saveFolder);
+                }
+                if (subKey.GetValue(nameof(Left)) == null)
+                {
+                    subKey.SetValue(nameof(Left), "200");
+                }
+                if (subKey.GetValue(nameof(Top)) == null)
+                {
+                    subKey.SetValue(nameof(Top), "200");
+                }
+
+                IdCode = subKey.GetValue(nameof(IdCode)).ToString();
+                SaveFolder = subKey.GetValue(nameof(SaveFolder)).ToString();
+                string leftValue = subKey.GetValue(nameof(Left)).ToString();
+                if (double.TryParse(leftValue, out double left))
+                {
+                    _left = left;
+                }
+                string topValue = subKey.GetValue(nameof(Top)).ToString();
+                if (double.TryParse(topValue, out double top))
+                {
+                    _top = top;
+                }
             }
-            if (ConfigurationManager.AppSettings[nameof(Left)] == null)
+            catch(Exception ex)
             {
-                AppConfigUtils.AddItem(nameof(Left), "200");
-            }
-            if (ConfigurationManager.AppSettings[nameof(Top)] == null)
-            {
-                AppConfigUtils.AddItem(nameof(Top), "200");
-            }
-            IdCode = ConfigurationManager.AppSettings[nameof(IdCode)];
-            SaveFolder = ConfigurationManager.AppSettings[nameof(SaveFolder)];
-            if (double.TryParse(ConfigurationManager.AppSettings[nameof(Left)], out double left))
-            {
-                _left = left;
-            }
-            if (double.TryParse(ConfigurationManager.AppSettings[nameof(Top)], out double top))
-            {
-                _top = top;
+                MessageBox.Show($"Error: {ex.Message}");
             }
         }
 
@@ -151,6 +174,25 @@ namespace SimpleTransfer.ViewModels
             });
             _eventAggregator.GetEvent<AddReceiveFileProgressEvent>().Publish(receiveFileProgress);
             _ReceiveFileProgressCollection.Add(receiveFileProgress);
+        }
+
+        private void SetStartupLocation()
+        {
+            try
+            {
+                RegistryKey subKey = Registry.CurrentUser.CreateSubKey(RegisterKeyName);
+                if (subKey == null)
+                {
+                    MessageBox.Show("注册表打开异常");
+                    return;
+                }
+                subKey.SetValue(nameof(Left), Left.ToString());
+                subKey.SetValue(nameof(Top), Top.ToString());
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
         }
 
         private void OpenTransferFiles()
@@ -207,7 +249,7 @@ namespace SimpleTransfer.ViewModels
                         {
                             IdCode = idCode;
                             _transferServer.IdCode = idCode;
-                            AppConfigUtils.AddItem(nameof(IdCode), idCode);
+                            RegisterSetValue(nameof(IdCode), idCode);
                         }
 
                         if (res.Parameters.TryGetValue(nameof(SaveFolder), out string saveFolder))
@@ -220,7 +262,7 @@ namespace SimpleTransfer.ViewModels
                                     Directory.CreateDirectory(saveFolder);//文件夹路径格式不对会抛IO异常
                                     SaveFolder = saveFolder;
                                     _transferServer.SaveFolder = saveFolder;
-                                    AppConfigUtils.AddItem(nameof(SaveFolder), saveFolder);
+                                    RegisterSetValue(nameof(SaveFolder), saveFolder);
                                 }
                                 catch(Exception ex)
                                 {
@@ -231,7 +273,7 @@ namespace SimpleTransfer.ViewModels
                             {
                                 SaveFolder = saveFolder;
                                 _transferServer.SaveFolder = saveFolder;
-                                AppConfigUtils.AddItem(nameof(SaveFolder), saveFolder);
+                                RegisterSetValue(nameof(SaveFolder), saveFolder);
                             }
                         }
                     }
@@ -278,6 +320,24 @@ namespace SimpleTransfer.ViewModels
                 }
             }
             return false;
+        }
+
+        private void RegisterSetValue(string key, string value)
+        {
+            try
+            {
+                RegistryKey subKey = Registry.CurrentUser.CreateSubKey(RegisterKeyName);
+                if (subKey == null)
+                {
+                    MessageBox.Show("注册表打开异常");
+                    return;
+                }
+                subKey.SetValue(key, value);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
         }
     }
 }

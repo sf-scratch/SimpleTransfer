@@ -69,6 +69,7 @@
                 <ContextMenu>
                     <MenuItem Header="设置" Command="{Binding OpenSettingCommand}"/>
                     <MenuItem Header="文件传输列表" Command="{Binding OpenTransferFilesCommand}"/>
+                    <MenuItem Header="设为启动位置" Command="{Binding SetStartupLocationCommand}"/>
                     <MenuItem Header="隐藏" Click="btnHide_Click"/>
                     <MenuItem Header="退出" Click="Exit_Click"/>
                 </ContextMenu>
