@@ -4,6 +4,7 @@ using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using SimpleTransfer.PubSubEvents;
+using SimpleTransfer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,6 +46,17 @@ namespace SimpleTransfer.ViewModels
             set
             {
                 _saveFolder = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool _isTransferLocal;
+        public bool IsTransferLocal
+        {
+            get { return _isTransferLocal; }
+            set
+            {
+                _isTransferLocal = value;
                 RaisePropertyChanged();
             }
         }
@@ -100,7 +112,8 @@ namespace SimpleTransfer.ViewModels
             DialogParameters param = new DialogParameters
             {
                 { nameof(IdCode), IdCode },
-                { nameof(SaveFolder), SaveFolder }
+                { nameof(SaveFolder), SaveFolder },
+                { nameof(IsTransferLocal), IsTransferLocal }
             };
             RequestClose?.Invoke(new DialogResult(ButtonResult.OK, param));
         }
@@ -118,6 +131,7 @@ namespace SimpleTransfer.ViewModels
         {
             IdCode = parameters.GetValue<string>(nameof(IdCode));
             SaveFolder = parameters.GetValue<string>(nameof(SaveFolder));
+            IsTransferLocal = parameters.GetValue<bool>(nameof(IsTransferLocal));
             double left = parameters.GetValue<double>("Left");
             double top = parameters.GetValue<double>("Top");
             _eventAggregator.GetEvent<UpdateWindowLeftTopEvent>().Publish(new WindowLeftTop(left, top));

@@ -37,6 +37,7 @@ namespace SimpleTransfer.ViewModels
         private readonly IEventAggregator _eventAggregator;
         private TransferServer _transferServer;
         private int _isOpenedDialog = 0;// 0:未打开对话框  1:已打开对话框
+
         private string SaveFolder {  get; set; }
 
         private string _idCode;
@@ -76,7 +77,6 @@ namespace SimpleTransfer.ViewModels
                 _eventAggregator.GetEvent<UpdateWindowLeftTopEvent>().Publish(new WindowLeftTop(Left, Top));
             }
         }
-
 
         public MainViewModel(IDialogService dialogService, IEventAggregator eventAggregator)
         {
@@ -238,7 +238,8 @@ namespace SimpleTransfer.ViewModels
                     { nameof(Left), Left },
                     { nameof(Top), Top },
                     { nameof(IdCode), IdCode },
-                    { nameof(SaveFolder), SaveFolder }
+                    { nameof(SaveFolder), SaveFolder },
+                    { "IsTransferLocal", _transferServer.IsTransferLocal }
                 };
                 _dialogService.Show(nameof(SettingsDialog), param, (res) =>
                 {
@@ -251,7 +252,6 @@ namespace SimpleTransfer.ViewModels
                             _transferServer.IdCode = idCode;
                             RegisterSetValue(nameof(IdCode), idCode);
                         }
-
                         if (res.Parameters.TryGetValue(nameof(SaveFolder), out string saveFolder))
                         {
                             //检查文件夹是否存在
@@ -264,7 +264,7 @@ namespace SimpleTransfer.ViewModels
                                     _transferServer.SaveFolder = saveFolder;
                                     RegisterSetValue(nameof(SaveFolder), saveFolder);
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     MessageBox.Show(ex.Message);
                                 }
@@ -275,6 +275,10 @@ namespace SimpleTransfer.ViewModels
                                 _transferServer.SaveFolder = saveFolder;
                                 RegisterSetValue(nameof(SaveFolder), saveFolder);
                             }
+                        }
+                        if (res.Parameters.TryGetValue("IsTransferLocal", out bool isTransferLocal))
+                        {
+                            _transferServer.IsTransferLocal = isTransferLocal;
                         }
                     }
                     Interlocked.Exchange(ref _isOpenedDialog, 0);//切换状态
