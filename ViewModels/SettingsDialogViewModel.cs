@@ -5,6 +5,7 @@ using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using SimpleTransfer.PubSubEvents;
 using SimpleTransfer.Utils;
+using SimpleTransfer.Views;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -68,15 +69,18 @@ namespace SimpleTransfer.ViewModels
             SelectSaveFolderCommand = new DelegateCommand(SelectSaveFolder);
             OpenSaveFolderCommand = new DelegateCommand(OpenSaveFolder);
             _eventAggregator = eventAggregator;
-            _eventAggregator.GetEvent<CloseDialogEvent>().Subscribe(CloseDialog);
+            _eventAggregator.GetEvent<CurrentOpenDialogEvent>().Subscribe(CheckIsCloseDialog);
         }
 
-        private void CloseDialog()
+        private void CheckIsCloseDialog(string openDialogName)
         {
-            PrismApplication.Current.Dispatcher.Invoke(() =>
+            if (nameof(SettingsDialog) != openDialogName)
             {
-                RequestClose?.Invoke(new DialogResult(ButtonResult.Cancel));
-            });
+                PrismApplication.Current.Dispatcher.Invoke(() =>
+                {
+                    RequestClose?.Invoke(new DialogResult(ButtonResult.Cancel));
+                });
+            }
         }
 
         private void OpenSaveFolder()

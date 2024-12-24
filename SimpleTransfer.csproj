@@ -109,7 +109,7 @@
     <Compile Include="Converters\EventArgsConverter.cs" />
     <Compile Include="PubSubEvents\AddReceiveFileProgressEvent.cs" />
     <Compile Include="PubSubEvents\AddSendFileProgressEvent.cs" />
-    <Compile Include="PubSubEvents\CloseDialogEvent.cs" />
+    <Compile Include="PubSubEvents\CurrentOpenDialogEvent.cs" />
     <Compile Include="PubSubEvents\UpdateWindowLeftTopEvent.cs" />
     <Compile Include="Utils\ReceiveFileProgress.cs" />
     <Compile Include="Utils\SendFileProgress.cs" />

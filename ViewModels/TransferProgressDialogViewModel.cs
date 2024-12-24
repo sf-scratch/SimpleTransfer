@@ -5,6 +5,7 @@ using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using SimpleTransfer.PubSubEvents;
 using SimpleTransfer.Utils;
+using SimpleTransfer.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -34,6 +35,18 @@ namespace SimpleTransfer.ViewModels
             ReceiveFileProgressCollection = new ObservableCollection<ReceiveFileProgress>();
             _eventAggregator.GetEvent<AddSendFileProgressEvent>().Subscribe(AddSendFileProgress);
             _eventAggregator.GetEvent<AddReceiveFileProgressEvent>().Subscribe(AddReceiveFileProgress);
+            _eventAggregator.GetEvent<CurrentOpenDialogEvent>().Subscribe(CheckIsCloseDialog);
+        }
+
+        private void CheckIsCloseDialog(string openDialogName)
+        {
+            if (nameof(TransferProgressDialog) != openDialogName)
+            {
+                PrismApplication.Current.Dispatcher.Invoke(() =>
+                {
+                    RequestClose?.Invoke(new DialogResult(ButtonResult.Cancel));
+                });
+            }
         }
 
         private void CloseDialog()

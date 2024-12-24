@@ -78,12 +78,25 @@ namespace SimpleTransfer.ViewModels
             }
         }
 
+        private bool _mainIsEnabled;
+
+        public bool MainIsEnabled
+        {
+            get { return _mainIsEnabled; }
+            set
+            {
+                _mainIsEnabled = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public MainViewModel(IDialogService dialogService, IEventAggregator eventAggregator)
         {
             InitAppConfig();
             InitTransferServer();
             _dialogService = dialogService;
             _eventAggregator = eventAggregator;
+            _mainIsEnabled = true;
             DragOverCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(DragOver);
             DropCommand = new DelegateCommand<Tuple<object, DragEventArgs>>(Drop);
             OpenSettingCommand = new DelegateCommand(OpenSetting);
@@ -155,7 +168,6 @@ namespace SimpleTransfer.ViewModels
         private readonly List<SendFileProgress> _SendFileProgressCollection = new List<SendFileProgress>();
         private void TransferServer_AddSendFileProgressEvent(SendFileProgress sendFileProgress)
         {
-            _eventAggregator.GetEvent<CloseDialogEvent>().Publish();//通知关闭对话框
             PrismApplication.Current.Dispatcher.Invoke(() =>
             {
                 OpenTransferFiles();//打开文件传输对话框（需要UI线程）
@@ -167,7 +179,6 @@ namespace SimpleTransfer.ViewModels
         private readonly List<ReceiveFileProgress> _ReceiveFileProgressCollection = new List<ReceiveFileProgress>();
         private void TransferServer_AddReceiveFileProgressEvent(ReceiveFileProgress receiveFileProgress)
         {
-            _eventAggregator.GetEvent<CloseDialogEvent>().Publish();//通知关闭对话框
             PrismApplication.Current.Dispatcher.Invoke(() =>
             {
                 OpenTransferFiles();//打开文件传输对话框（需要UI线程）
@@ -197,6 +208,7 @@ namespace SimpleTransfer.ViewModels
 
         private void OpenTransferFiles()
         {
+            _eventAggregator.GetEvent<CurrentOpenDialogEvent>().Publish(nameof(TransferProgressDialog));
             if (Interlocked.CompareExchange(ref _isOpenedDialog, 1, 0) == 0)
             {
                 DialogParameters param = new DialogParameters()
@@ -231,6 +243,7 @@ namespace SimpleTransfer.ViewModels
 
         private void OpenSetting()
         {
+            _eventAggregator.GetEvent<CurrentOpenDialogEvent>().Publish(nameof(SettingsDialog));
             if (Interlocked.CompareExchange(ref _isOpenedDialog, 1, 0) == 0)
             {
                 DialogParameters param = new DialogParameters()
@@ -286,13 +299,25 @@ namespace SimpleTransfer.ViewModels
             }
         }
 
-        private void Drop(Tuple<object, DragEventArgs> tuple)
+        private async void Drop(Tuple<object, DragEventArgs> tuple)
         {
-            DragEventArgs eventArgs = tuple.Item2;
-            if (eventArgs == null) { return; }
-            string[] files = (string[])eventArgs.Data.GetData(DataFormats.FileDrop);
-            if (files == null || HasDirectory(files)) { return; }
-            _transferServer.SendFiles(files);
+            try
+            {
+                DragEventArgs eventArgs = tuple.Item2;
+                if (eventArgs == null) { return; }
+                string[] files = (string[])eventArgs.Data.GetData(DataFormats.FileDrop);
+                if (files == null || HasDirectory(files)) { return; }
+                MainIsEnabled = false;
+                await _transferServer.SendFiles(files);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                MainIsEnabled = true;
+            }
         }
 
         private void DragOver(Tuple<object, DragEventArgs> tuple)

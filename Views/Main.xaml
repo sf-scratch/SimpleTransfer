@@ -13,7 +13,8 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
         mc:Ignorable="d"
-        Title="Main" Height="70" Width="70" WindowStyle="None" ResizeMode="NoResize" Left="{Binding Left, Mode=TwoWay}" Top="{Binding Top, Mode=TwoWay}">
+        Title="Main" Height="70" Width="70" WindowStyle="None" ResizeMode="NoResize" 
+        Left="{Binding Left, Mode=TwoWay}" Top="{Binding Top, Mode=TwoWay}" IsEnabled="{Binding MainIsEnabled}">
     <Window.Resources>
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="Background" Value="LightBlue"/>

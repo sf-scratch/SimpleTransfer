@@ -30,6 +30,7 @@ namespace SimpleTransfer.Utils
         public string IdCode { get; set; }
         public bool IsTransferLocal { get; set; } = false;//是否能发送到本地
         private ConcurrentQueue<string> TransferFilePathQueue {  get; set; }
+        private ConcurrentQueue<string> ConnectedIPQueue {  get; set; }
         private UdpClient _udpClientListenReceiveIP;
         private TcpListener _tcpListener;
         private CancellationTokenSource _ctsSendLocalHostIP;
@@ -39,6 +40,7 @@ namespace SimpleTransfer.Utils
             SaveFolder = saveFolder;
             IdCode = idCode;
             TransferFilePathQueue = new ConcurrentQueue<string>();
+            ConnectedIPQueue = new ConcurrentQueue<string>();
         }
 
         public void Start()
@@ -57,8 +59,17 @@ namespace SimpleTransfer.Utils
             foreach (var file in files)
             {
                 TransferFilePathQueue.Enqueue(file);
-                SendLocalHostIP();
+                await SendLocalHostIP();
                 await Task.Delay(1000);
+                TransferFilePathQueue.TryDequeue(out string outTimeFile);
+                if (ConnectedIPQueue.Count == 0)
+                {
+                    MessageBox.Show($"没有主机接收文件: {outTimeFile}");
+                }
+                else
+                {
+                    while (ConnectedIPQueue.TryDequeue(out string ipAddress)) { }
+                }
             }
         }
 
@@ -216,8 +227,9 @@ namespace SimpleTransfer.Utils
                     {
                         TcpClient tcpClient = await _tcpListener.AcceptTcpClientAsync();
                         //检查等待发送的文件集合
-                        while (TransferFilePathQueue.TryDequeue(out string filePath))
+                        if (TransferFilePathQueue.TryPeek(out string filePath))
                         {
+                            ConnectedIPQueue.Enqueue(((IPEndPoint)tcpClient.Client.RemoteEndPoint).Address.ToString());
                             SendFileByTCP(filePath, tcpClient, token);
                         }
                     }
