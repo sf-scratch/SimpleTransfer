@@ -252,7 +252,7 @@ namespace SimpleTransfer.ViewModels
                     { nameof(Top), Top },
                     { nameof(IdCode), IdCode },
                     { nameof(SaveFolder), SaveFolder },
-                    { "IsTransferLocal", _transferServer.IsTransferLocal }
+                    { "IsNotTransferLocal", _transferServer.IsNotTransferLocal }
                 };
                 _dialogService.Show(nameof(SettingsDialog), param, (res) =>
                 {
@@ -289,9 +289,9 @@ namespace SimpleTransfer.ViewModels
                                 RegisterSetValue(nameof(SaveFolder), saveFolder);
                             }
                         }
-                        if (res.Parameters.TryGetValue("IsTransferLocal", out bool isTransferLocal))
+                        if (res.Parameters.TryGetValue("IsNotTransferLocal", out bool isNotTransferLocal))
                         {
-                            _transferServer.IsTransferLocal = isTransferLocal;
+                            _transferServer.IsNotTransferLocal = isNotTransferLocal;
                         }
                     }
                     Interlocked.Exchange(ref _isOpenedDialog, 0);//切换状态

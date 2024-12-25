@@ -28,7 +28,7 @@ namespace SimpleTransfer.Utils
         public event Action<ReceiveFileProgress> AddReceiveFileProgressEvent;
         public string SaveFolder { get; set; }
         public string IdCode { get; set; }
-        public bool IsTransferLocal { get; set; } = false;//是否能发送到本地
+        public bool IsNotTransferLocal { get; set; } = true;//是否不能发送到本地
         private ConcurrentQueue<string> TransferFilePathQueue {  get; set; }
         private ConcurrentQueue<string> ConnectedIPQueue {  get; set; }
         private UdpClient _udpClientListenReceiveIP;
@@ -292,7 +292,7 @@ namespace SimpleTransfer.Utils
                         UdpReceiveResult receivedBytes = await _udpClientListenReceiveIP.ReceiveAsync();
                         string receivedString = Encoding.UTF8.GetString(receivedBytes.Buffer);
                         //判断是不是本地ip
-                        bool isCreateConnect = GetLocalHostIP() != receivedString || IsTransferLocal;
+                        bool isCreateConnect = GetLocalHostIP() != receivedString || !IsNotTransferLocal;
                         if (isCreateConnect && IPAddress.TryParse(receivedString, out IPAddress receivedIpAddress))
                         {
                             CreateConnectToTransfer(receivedIpAddress, token);

@@ -51,13 +51,13 @@ namespace SimpleTransfer.ViewModels
             }
         }
 
-        private bool _isTransferLocal;
-        public bool IsTransferLocal
+        private bool _isNotTransferLocal;
+        public bool IsNotTransferLocal
         {
-            get { return _isTransferLocal; }
+            get { return _isNotTransferLocal; }
             set
             {
-                _isTransferLocal = value;
+                _isNotTransferLocal = value;
                 RaisePropertyChanged();
             }
         }
@@ -117,7 +117,7 @@ namespace SimpleTransfer.ViewModels
             {
                 { nameof(IdCode), IdCode },
                 { nameof(SaveFolder), SaveFolder },
-                { nameof(IsTransferLocal), IsTransferLocal }
+                { nameof(IsNotTransferLocal), IsNotTransferLocal }
             };
             RequestClose?.Invoke(new DialogResult(ButtonResult.OK, param));
         }
@@ -135,7 +135,7 @@ namespace SimpleTransfer.ViewModels
         {
             IdCode = parameters.GetValue<string>(nameof(IdCode));
             SaveFolder = parameters.GetValue<string>(nameof(SaveFolder));
-            IsTransferLocal = parameters.GetValue<bool>(nameof(IsTransferLocal));
+            IsNotTransferLocal = parameters.GetValue<bool>(nameof(IsNotTransferLocal));
             double left = parameters.GetValue<double>("Left");
             double top = parameters.GetValue<double>("Top");
             _eventAggregator.GetEvent<UpdateWindowLeftTopEvent>().Publish(new WindowLeftTop(left, top));

@@ -29,8 +29,10 @@
                         Command="{Binding SelectSaveFolderCommand}">
                     <md:PackIcon Kind="TabSearch" />
                 </Button>
-                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding Path=IsTransferLocal, Mode=TwoWay}" Background="LightBlue"
-                          Style="{StaticResource MaterialDesignActionCheckBox}" FontSize="10" Cursor="Hand"/>
+                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding Path=IsNotTransferLocal, Mode=TwoWay}" Background="LightBlue"
+                          Style="{StaticResource MaterialDesignActionCheckBox}" FontSize="10" Cursor="Hand">
+                    <md:PackIcon Kind="CloudOffOutline" Width="12" Height="12" />
+                </CheckBox>
             </DockPanel>
             <TextBox VerticalAlignment="Center" md:TextFieldAssist.HasClearButton="True" Text="{Binding SaveFolder}" Margin="0,8,0,0" HorizontalAlignment="Stretch"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}">
